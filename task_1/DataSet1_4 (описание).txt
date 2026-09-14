@@ -1,0 +1,9 @@
+Динамиика заболеваемости COVID-19 по странам
+
+1 - Entity - страна
+2 - Code - код страны
+3 - Day - день
+4 - DDaily.new.confirmed.cases.due.to.COVID.19..rolling.7.day.average..right.aligned  - новые подтверждённые случаи заболеваемости COVID-19
+5 - DTotal.confirmed.cases.of.COVID.19 - общее число подтверждённых случаев COVID-19
+6 - DYear - год 
+7 - DContinent - континет
