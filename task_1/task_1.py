@@ -61,7 +61,7 @@ def get_linear_graph(df: pd.DataFrame):
     ax.plot(0, 1, '^k', transform=ax.transAxes, clip_on=False)
 
     plt.tight_layout()
-    plt.savefig(f'data/all_time_period_world_linear_chart.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_1/data/all_time_period_world_linear_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def get_pie_chart_data(df: pd.DataFrame):
@@ -90,7 +90,7 @@ def get_pie_chart(df: pd.DataFrame):
     plt.title(f"Доля заболевших на каждом континенте за все время", fontweight="bold")
     plt.legend(title="Континенты", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
     plt.tight_layout()
-    plt.savefig(f'data/all_time_continents_pie_chart.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_1/data/all_time_continents_pie_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def get_bar_chart_data(df: pd.DataFrame):
@@ -146,7 +146,7 @@ def get_bar_chart(df: pd.DataFrame):
     plt.xticks(rotation=45, ha="right")
     plt.bar_label(bars, padding=3, fmt="%.0f")
     plt.tight_layout()
-    plt.savefig(f'data/top_15_countries_all_time_bar_chart.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_1/data/top_15_countries_all_time_bar_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def get_violin_plot_data(df: pd.DataFrame):
@@ -161,7 +161,7 @@ def get_violin_plot(df: pd.DataFrame):
     sns.violinplot(data=df, x="Continent", y="log_daily", inner="quartile")
     plt.ylabel("log10(ежедневные случаи + 1)")
     plt.title("Распределение заболеваемости по континентам (логарифмическая шкала)")
-    plt.savefig(f'data/daily_data_continents_violin_plot.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_1/data/daily_data_continents_violin_plot.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def get_bad_data(df: pd.DataFrame):
@@ -318,7 +318,7 @@ def get_linear_compare(df_valid: pd.DataFrame, df_avg: pd.DataFrame, df_median: 
     ax.yaxis.set_major_formatter(plt.FormatStrFormatter("%.2f"))
     
     plt.tight_layout()
-    plt.savefig(f'data/compare_filling_missed_data_linear_chart.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_1/data/compare_filling_missed_data_linear_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def get_difference_vector(df_valid: pd.DataFrame, df_restored: pd.DataFrame):
@@ -343,33 +343,33 @@ def get_box_plot(errors: pd.Series):
     plt.show()
     
 def main():
-    data_file = "DataSet1_4.csv"  # Путь к файлу с данными
+    data_file = "task_1/DataSet1_4.csv"  # Путь к файлу с данными
     separator = ","  # Разделитель данных в файле
 
     data = read_data(data_file, separator)
     data["Day"] = pd.to_datetime(data["Day"])
     
-    # linear_data = get_linear_chart_data(data)
-    # get_linear_graph(linear_data)
+    linear_data = get_linear_chart_data(data)
+    get_linear_graph(linear_data)
 
-    # pie_data = get_pie_chart_data(data)
-    # get_pie_chart(pie_data)
+    pie_data = get_pie_chart_data(data)
+    get_pie_chart(pie_data)
 
-    # bar_data = get_bar_chart_data(data)
-    # get_bar_chart(bar_data)
+    bar_data = get_bar_chart_data(data)
+    get_bar_chart(bar_data)
     
-    # violin_data = get_violin_plot_data(data)
-    # get_violin_plot(violin_data)
+    violin_data = get_violin_plot_data(data)
+    get_violin_plot(violin_data)
     
     bad_data = get_bad_data(data)
     valid_data = get_valid_data(data)
-    # average = fill_average(bad_data.copy())
-    # median = fill_median(bad_data.copy())
+    average = fill_average(bad_data.copy())
+    median = fill_median(bad_data.copy())
     average_of_3 = fill_average_of_3(bad_data.copy())
-    # llagrange = fill_lagrange(bad_data.copy())
-    # cube_spline = fill_cube_spline(bad_data.copy())
+    llagrange = fill_lagrange(bad_data.copy())
+    cube_spline = fill_cube_spline(bad_data.copy())
 
-    # get_linear_compare(valid_data, average, median, average_of_3, llagrange, cube_spline)    
+    get_linear_compare(valid_data, average, median, average_of_3, llagrange, cube_spline)    
     
     difference_vector = get_difference_vector(valid_data, average_of_3)
     print(sigma_method(difference_vector, 3))
