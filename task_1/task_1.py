@@ -60,6 +60,8 @@ def get_linear_graph(df: pd.DataFrame):
     ax.plot(1, 0, '>k', transform=ax.transAxes, clip_on=False)
     ax.plot(0, 1, '^k', transform=ax.transAxes, clip_on=False)
 
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     plt.tight_layout()
     plt.savefig(f'task_1/data/all_time_period_world_linear_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
@@ -89,6 +91,8 @@ def get_pie_chart(df: pd.DataFrame):
     plt.pie(df, labels=df.index, autopct="%1.1f%%", startangle=140)
     plt.title(f"Доля заболевших на каждом континенте за все время", fontweight="bold")
     plt.legend(title="Континенты", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     plt.tight_layout()
     plt.savefig(f'task_1/data/all_time_continents_pie_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
@@ -145,6 +149,8 @@ def get_bar_chart(df: pd.DataFrame):
 
     plt.xticks(rotation=45, ha="right")
     plt.bar_label(bars, padding=3, fmt="%.0f")
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     plt.tight_layout()
     plt.savefig(f'task_1/data/top_15_countries_all_time_bar_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
@@ -158,9 +164,15 @@ def get_violin_plot_data(df: pd.DataFrame):
 
 def get_violin_plot(df: pd.DataFrame):
     """Строит скрипичную диаграмму по ежедневным данным по континентам"""
+    _, ax = plt.subplots()
     sns.violinplot(data=df, x="Continent", y="log_daily", inner="quartile")
-    plt.ylabel("log10(ежедневные случаи + 1)")
+    plt.xlabel('Континент')
+    plt.ylabel("Количество ежедневных случаев болезни")
     plt.title("Распределение заболеваемости по континентам (логарифмическая шкала)")
+    ax.set_yticklabels([0,1,10,100,1000,10000,100000,1000000])    
+
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     plt.savefig(f'task_1/data/daily_data_continents_violin_plot.png', dpi=150, bbox_inches='tight')
     plt.show()
 
@@ -316,14 +328,17 @@ def get_linear_compare(df_valid: pd.DataFrame, df_avg: pd.DataFrame, df_median: 
     
     ax.tick_params(axis="x", rotation=45)
     ax.yaxis.set_major_formatter(plt.FormatStrFormatter("%.2f"))
-    
+
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     plt.tight_layout()
     plt.savefig(f'task_1/data/compare_filling_missed_data_linear_chart.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def get_difference_vector(df_valid: pd.DataFrame, df_restored: pd.DataFrame):
     """Вычисляет вектор ошибок для восстановленных значений"""
-    result = df_valid['Daily_new_confirmed_cases_due_to_COVID-19_(rolling_7-day_average_right-aligned)'] - df_restored['Daily_new_confirmed_cases_due_to_COVID-19_(rolling_7-day_average_right-aligned)']
+
+    result = df_valid['Daily_new_confirmed_cases_due_to_COVID-19_(rolling_7-day_average_right-aligned)'][1::2] - df_restored['Daily_new_confirmed_cases_due_to_COVID-19_(rolling_7-day_average_right-aligned)'][1::2]
     return result
 
 def sigma_method(errors: pd.Series, number: int):
@@ -338,8 +353,11 @@ def get_box_plot(errors: pd.Series):
     _, ax = plt.subplots(figsize=(12, 5))
     sns.boxplot(y=errors, ax=ax, color="skyblue")
     ax.set_title("Box-plot ошибок восстановления")
-    ax.set_ylabel("Ошибка (Real - Imputed)")
+    ax.set_ylabel("Ошибка (valid - restored)")
+    manager = plt.get_current_fig_manager()
+    manager.window.state('zoomed')
     plt.tight_layout()
+    plt.savefig(f'task_1/data/difference_box_plot.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def main():
@@ -372,6 +390,7 @@ def main():
     get_linear_compare(valid_data, average, median, average_of_3, llagrange, cube_spline)    
     
     difference_vector = get_difference_vector(valid_data, average_of_3)
+    print(difference_vector)
     print(sigma_method(difference_vector, 3))
     print(sigma_method(difference_vector, 2))
     get_box_plot(difference_vector)
