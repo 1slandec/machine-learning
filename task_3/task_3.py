@@ -171,12 +171,10 @@ def class_metrics(metrics_dict):
         predicted = np.asarray(predicted, dtype=float).ravel()
         accuracy = accuracy_score(valid, predicted)
         f_score = f1_score(valid, predicted)
-        _log_loss = log_loss(valid,predicted)
         results.append({
                 "Модель": model_name,
                 "accuracy": accuracy,
                 "f_score": f_score,
-                "_log_loss": _log_loss,
             })
         _confusion_matrix(predicted, valid, model_name)
     
@@ -193,8 +191,8 @@ def _confusion_matrix(y_pred_class, y_class, name):
     plt.savefig(f'task_3/data/conf_method_{name}.png', dpi=150, bbox_inches='tight')
     plt.show()
     
-def roc(y_class, y_pred_knn_a, name):
-    fpr, tpr, thresholds = roc_curve(y_true=y_class, y_score=y_pred_knn_a[:, 1])
+def roc(y_class, y_predict_proba, name):
+    fpr, tpr, thresholds = roc_curve(y_true=y_class, y_score=y_predict_proba[:, 1])
 
     # Рассчитать площадь под ROC-кривой (AUC-ROC)
     roc_auc = auc(fpr, tpr)
@@ -211,6 +209,7 @@ def roc(y_class, y_pred_knn_a, name):
     plt.savefig(f'task_3/data/roc_{name}.png', dpi=150, bbox_inches='tight')
 
     plt.show()
+
 
 def main():
     path = 'Classification1.csv'
@@ -248,11 +247,14 @@ def main():
     class_svm, svm_proba = svm(x6_train, train_df['class'].values, x6_test)
     class_knn, knn_proba = knn(x6_train, train_df['class'].values, x6_test)
 
-    linear(t_train, train_df['class'].values, t_test, test_df['class'].values, predicted_ols2_class, 'МНК с двумя параметрами')
-    linear(t_train, train_df['class'].values, t_test, test_df['class'].values, predicted_svr2_class, 'SVR с двумя параметрами')
+    # linear(t_train, y_train, t_test, y_test, predicted_ols2, 'МНК с двумя параметрами')
+    # linear(t_train, y_train, t_test, y_test, predicted_svr2, 'SVR с двумя параметрами')
+
+    # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, predicted_ols2_class, 'МНК с двумя параметрами')
+    # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, predicted_svr2_class, 'SVR с двумя параметрами')
     
-    linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_svm, 'SVM')
-    linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_knn, 'КНН')
+    # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_svm, 'SVM')
+    # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_knn, 'КНН')
 
 
     
@@ -261,11 +263,11 @@ def main():
         "SVR с двумя параметрами": predicted_svr2,
     }
 
-    violin_actual_vs_predicted(
-        y_true=y_test,
-        predictions=predictions,
-        title="Распределение фактических и прогнозируемых значений count",
-    )
+    # violin_actual_vs_predicted(
+    #     y_true=y_test,
+    #     predictions=predictions,
+    #     title="Распределение фактических и прогнозируемых значений count",
+    # )
 
     metrics_dict = {
         "valid": y_test,
@@ -275,8 +277,8 @@ def main():
 
     metrics_table = metrics(metrics_dict, y_train=y_train)
 
-    print("\nСводная таблица метрик:")
-    print(metrics_table)
+    # print("\nСводная таблица метрик:")
+    # print(metrics_table)
     
     class_metrics_dict = {
         "valid": test_df['class'].values,
@@ -286,12 +288,13 @@ def main():
         "SVM": class_svm
     }
     
-    metrics_class_table = class_metrics(class_metrics_dict)
-    print("\nСводная таблица метрик классификации:")
-    print(metrics_class_table)
+    # metrics_class_table = class_metrics(class_metrics_dict)
+    # print("\nСводная таблица метрик классификации:")
+    # print(metrics_class_table)
     
-    roc(test_df['class'].values, svm_proba,'SVM')
-    roc(test_df['class'].values, knn_proba, "KNN")
-
+    # roc(test_df['class'].values, svm_proba,'SVM')
+    # roc(test_df['class'].values, knn_proba, "KNN")
+    print(f'Log_loss for SVM: {log_loss(test_df['class'], svm_proba)}')
+    print(f'Log_loss for KNN: {log_loss(test_df['class'], knn_proba)}')
 if __name__ == "__main__":
     main() 
