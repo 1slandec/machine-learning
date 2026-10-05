@@ -17,6 +17,9 @@ from sklearn.metrics import accuracy_score, f1_score, log_loss
 from sklearn.metrics import classification_report
 from sklearn.metrics import roc_curve, auc
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import StratifiedKFold
+from sklearn.ensemble import VotingClassifier
 
 
 def read_data(data_file: str, separator: str) -> pd.DataFrame:
@@ -27,30 +30,8 @@ def read_data(data_file: str, separator: str) -> pd.DataFrame:
 def scaler(x_test, x_train):
     scaler = StandardScaler()
     x_train_scaled = scaler.fit_transform(x_train)
-    x_test_scaled = scaler.transform()
+    x_test_scaled = scaler.transform(x_test)
     return x_train_scaled, x_test_scaled
-
-def ols(x_train, y_train, x_test):
-    ols = LinearRegression().fit(x_train, y_train)
-    return ols.predict(x_test)
-
-def svm(x_train, y_train, x_test):
-    param_grid = {
-    'svc__C': [0.1, 1, 10],
-    'svc__kernel': ['linear', 'rbf'],
-    'svc__gamma': ['scale', 0.1, 1]
-}
-    _svm = make_pipeline(StandardScaler(), SVC(kernel='linear', C=0.1, probability=True, gamma='scale')).fit(x_train, y_train)
-    grid = GridSearchCV(_svm, param_grid, cv=5, scoring='accuracy')
-    grid.fit(x_train, y_train)
-
-    return (_svm.predict(x_test)>=0.5).astype(int), _svm.predict_proba(x_test)
-
-def log_regression(x_train, y_train, x_test):
-    model = LogisticRegression()
-    model.fit(x_train, y_train)
-    return model.predict(x_test)
-
 
 def class_metrics(metrics_dict):
     results = []
@@ -82,7 +63,11 @@ def _confusion_matrix(y_pred_class, y_class, name):
     plt.show()
     
 def roc(y_class, y_predict_proba, name):
-    fpr, tpr, thresholds = roc_curve(y_true=y_class, y_score=y_predict_proba[:, 1])
+    if y_predict_proba.ndim >= 2:
+        y_score = y_predict_proba[:, 1]
+    else:
+        y_score = y_predict_proba  
+    fpr, tpr, thresholds = roc_curve(y_true=y_class, y_score=y_score)
     roc_auc = auc(fpr, tpr)
     plt.figure()
     plt.plot(fpr, tpr, label=f'AUC = {roc_auc:.2f}')
@@ -117,6 +102,8 @@ def main():
     
     x1_col = 'workingday'
     x2_col = 'temp'
+    x_scaled = StandardScaler().fit_transform(data[[x1_col, x2_col]])
+    y = np.concatenate([y_train_class, y_test_class])
     x_train = train_df[[x1_col]]
     x_test = test_df[[x1_col]]
     xn_cols = ['workingday', 'holiday', 'windspeed', 'temp', 'humidity', 'summer']
@@ -125,8 +112,7 @@ def main():
     x6_train = train_df[xn_cols]
     x6_test = test_df[xn_cols]
 
-    x2_test_scaled, x2_train_scaled = scaler(x2_test, x2_train)
-
+    x2_train_scaled, x2_test_scaled = scaler(x2_test, x2_train)
     models = {
     'kNN': KNeighborsClassifier(n_neighbors=5),
     'SVM': SVC(probability=True, kernel='linear'),
@@ -137,17 +123,60 @@ def main():
     metrics = {}
 
     for name, model in models.items():
-        model.fit(x2_train_scaled, y_train)
+        model.fit(x2_train_scaled, y_train_class)
         y_probs[name] = model.predict_proba(x2_test_scaled)[:,1]
         y_preds[name] = model.predict(x2_test_scaled)
         metrics[name] = {
-            'accuracy': accuracy_score(y_test, y_preds[name]),
-            'logloss': log_loss(y_test, y_probs[name]),
-            'f1': f1_score(y_test, y_preds[name])
+            'accuracy': accuracy_score(y_test_class, y_preds[name]),
+            'logloss': log_loss(y_test_class, y_probs[name]),
+            'f1': f1_score(y_test_class, y_preds[name])
         }
-        _confusion_matrix(y_probs[name], y_preds[name])
-        roc(y_preds[name], y_probs[name], name)
+        _confusion_matrix(y_preds[name], y_test_class, name)
+        roc(y_test_class, y_probs[name], name)
     
-
+    cv = StratifiedKFold()
+    for name, model in models.items():
+        y_pred_cv = cross_val_predict(model, x_scaled, y, cv=cv, method='predict')
+        y_proba_cv = cross_val_predict(model, x_scaled, y, cv=cv, method='predict_proba')[:, 1]
+        metrics[f'{name}_cv'] = {
+                'accuracy': accuracy_score(y, y_pred_cv),
+                'logloss': log_loss(y, y_proba_cv),
+                'f1': f1_score(y, y_pred_cv)
+            }
+        _confusion_matrix(y_pred_cv, y, f'{name}_cv')
+        roc(y_pred_cv, y_proba_cv, f'{name}_cv')
+    
+    voting_hard = VotingClassifier(
+        estimators=[('knn', models['kNN']), ('svm', models['SVM']), ('lr', models['SVM'])],
+        voting='hard'
+    )
+    
+    voting_soft = VotingClassifier(
+        estimators=[('knn', models['kNN']), ('svm', models['SVM']), ('lr', models['LR'])],
+        voting='soft'
+    )
+    
+    voting_hard.fit(x2_train_scaled, y_train_class)
+    voting_soft.fit(x2_train_scaled, y_train_class)
+    y_pred_hard = voting_hard.predict(x2_test_scaled)
+    y_pred_soft = voting_soft.predict(x2_test_scaled)
+    y_pred_soft_proba = voting_soft.predict_proba(x2_test_scaled)
+    metrics['Hard Voting'] = {
+        'accuracy': accuracy_score(y_test_class, y_pred_hard),
+        'f1': f1_score(y_test_class, y_pred_hard)
+    }
+    _confusion_matrix(y_pred_hard, y_test_class, 'Hard Voting')
+    
+    metrics['Soft Voting'] = {
+        'accuracy': accuracy_score(y_test_class, y_pred_soft),
+        'logloss': log_loss(y_test_class, y_pred_soft_proba),
+        'f1': f1_score(y_test_class, y_pred_soft)
+    }
+    _confusion_matrix(y_pred_soft, y_test_class, 'Soft Voting')
+    roc(y_test_class, y_pred_soft_proba, 'Soft Voting')
+    
+    
+    df_metrics = pd.DataFrame(metrics).T.round(4)
+    print(df_metrics)
 if __name__ == "__main__":
     main()
