@@ -40,8 +40,7 @@ def svm(x_train, y_train, x_test):
     _svm = make_pipeline(StandardScaler(), SVC(kernel='linear', C=0.1, probability=True, gamma='scale')).fit(x_train, y_train)
     grid = GridSearchCV(_svm, param_grid, cv=5, scoring='accuracy')
     grid.fit(x_train, y_train)
-    # print(grid.best_params_)
-    # print(grid.best_score_)
+
     return (_svm.predict(x_test)>=0.5).astype(int), _svm.predict_proba(x_test)
 
 
@@ -207,7 +206,6 @@ def roc(y_class, y_predict_proba, name):
     plt.title(f'ROC-кривая для {name}')
     plt.legend(loc='lower right')
     plt.savefig(f'task_3/data/roc_{name}.png', dpi=150, bbox_inches='tight')
-
     plt.show()
 
 

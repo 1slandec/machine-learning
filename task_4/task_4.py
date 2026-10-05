@@ -109,8 +109,10 @@ def main():
     train_df = data.iloc[:split_idx].copy()
     test_df = data.iloc[split_idx:].copy()
     y_train = train_df[y_col].values
+    y_train_class = train_df['class'].values
     t_train = train_df["time_idx"]
     y_test = test_df[y_col].values
+    y_test_class = test_df['class'].values
     t_test = test_df["time_idx"]
     
     x1_col = 'workingday'
@@ -123,6 +125,29 @@ def main():
     x6_train = train_df[xn_cols]
     x6_test = test_df[xn_cols]
 
+    x2_test_scaled, x2_train_scaled = scaler(x2_test, x2_train)
+
+    models = {
+    'kNN': KNeighborsClassifier(n_neighbors=5),
+    'SVM': SVC(probability=True, kernel='linear'),
+    'LR': LogisticRegression(max_iter=1000),
+    }
+    y_probs = {}
+    y_preds = {}
+    metrics = {}
+
+    for name, model in models.items():
+        model.fit(x2_train_scaled, y_train)
+        y_probs[name] = model.predict_proba(x2_test_scaled)[:,1]
+        y_preds[name] = model.predict(x2_test_scaled)
+        metrics[name] = {
+            'accuracy': accuracy_score(y_test, y_preds[name]),
+            'logloss': log_loss(y_test, y_probs[name]),
+            'f1': f1_score(y_test, y_preds[name])
+        }
+        _confusion_matrix(y_probs[name], y_preds[name])
+        roc(y_preds[name], y_probs[name], name)
+    
 
 if __name__ == "__main__":
     main()
