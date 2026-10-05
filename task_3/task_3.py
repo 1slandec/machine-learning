@@ -244,8 +244,8 @@ def main():
     predicted_ols2_class = np.where(predicted_ols2>threshold, 1, 0)
     predicted_svr2 = svr(x2_train, y_train, x2_test, 10)
     predicted_svr2_class = np.where(predicted_svr2>threshold, 1, 0)
-    class_svm, svm_proba = svm(x6_train, train_df['class'].values, x6_test)
-    class_knn, knn_proba = knn(x6_train, train_df['class'].values, x6_test)
+    class_svm, svm_proba = svm(x2_train, train_df['class'].values, x2_test)
+    class_knn, knn_proba = knn(x2_train, train_df['class'].values, x2_test)
 
     # linear(t_train, y_train, t_test, y_test, predicted_ols2, 'МНК с двумя параметрами')
     # linear(t_train, y_train, t_test, y_test, predicted_svr2, 'SVR с двумя параметрами')
@@ -253,8 +253,8 @@ def main():
     # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, predicted_ols2_class, 'МНК с двумя параметрами')
     # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, predicted_svr2_class, 'SVR с двумя параметрами')
     
-    # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_svm, 'SVM')
-    # linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_knn, 'КНН')
+    linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_svm, 'SVM')
+    linear(t_train, train_df['class'].values, t_test, test_df['class'].values, class_knn, 'КНН')
 
 
     
@@ -277,8 +277,8 @@ def main():
 
     metrics_table = metrics(metrics_dict, y_train=y_train)
 
-    # print("\nСводная таблица метрик:")
-    # print(metrics_table)
+    print("\nСводная таблица метрик:")
+    print(metrics_table)
     
     class_metrics_dict = {
         "valid": test_df['class'].values,
@@ -288,12 +288,12 @@ def main():
         "SVM": class_svm
     }
     
-    # metrics_class_table = class_metrics(class_metrics_dict)
-    # print("\nСводная таблица метрик классификации:")
-    # print(metrics_class_table)
+    metrics_class_table = class_metrics(class_metrics_dict)
+    print("\nСводная таблица метрик классификации:")
+    print(metrics_class_table)
     
-    # roc(test_df['class'].values, svm_proba,'SVM')
-    # roc(test_df['class'].values, knn_proba, "KNN")
+    roc(test_df['class'].values, svm_proba,'SVM')
+    roc(test_df['class'].values, knn_proba, "KNN")
     print(f'Log_loss for SVM: {log_loss(test_df['class'], svm_proba)}')
     print(f'Log_loss for KNN: {log_loss(test_df['class'], knn_proba)}')
 if __name__ == "__main__":

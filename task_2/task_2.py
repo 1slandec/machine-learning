@@ -141,7 +141,7 @@ def main():
     
     linear(t_train, y_train, t_test, y_test, predicted_ols2, 'МНК с двумя параметрами')
     linear(t_train, y_train, t_test, y_test, predicted_svr2, 'SVR с двумя параметрами')
-    
+        
     dict_metrics = {}
     dict_metrics['valid'] = test_df[y_col].values
     dict_metrics['arima'] = predicted_arima    
