@@ -34,9 +34,11 @@ def scaler(x_test, x_train):
 
 def main():
     path = 'Classification1.csv'
+    path2 = 'online_retail_II.csv'
     separator = ','
-    
+    separator2 = ';'
     data = read_data(path, separator)
+    data2 = read_data(path2, separator2)
     data["time_idx"] = np.arange(len(data))
     threshold = 100
     data['class'] = np.where(data['count']>= threshold, 1, 0)
