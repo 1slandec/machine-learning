@@ -3,23 +3,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVR
-from sklearn.metrics import mean_absolute_error, root_mean_squared_error
-from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.svm import SVC
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
-from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score, f1_score, log_loss
-from sklearn.metrics import classification_report
 from sklearn.metrics import roc_curve, auc
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_predict
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import VotingClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
 
 
 def read_data(data_file: str, separator: str) -> pd.DataFrame:
@@ -59,7 +54,7 @@ def _confusion_matrix(y_pred_class, y_class, name):
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title(f'Confusion Matrix для {name}')
-    plt.savefig(f'task_3/data/conf_method_{name}.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_4/data/conf_method_{name}.png', dpi=150, bbox_inches='tight')
     plt.show()
     
 def roc(y_class, y_predict_proba, name):
@@ -76,7 +71,7 @@ def roc(y_class, y_predict_proba, name):
     plt.ylabel('TPR')
     plt.title(f'ROC-кривая для {name}')
     plt.legend(loc='lower right')
-    plt.savefig(f'task_3/data/roc_{name}.png', dpi=150, bbox_inches='tight')
+    plt.savefig(f'task_4/data/roc_{name}.png', dpi=150, bbox_inches='tight')
     plt.show()
 
 def main():
@@ -88,29 +83,19 @@ def main():
     threshold = 100
     data['class'] = np.where(data['count']>= threshold, 1, 0)
     data = data.iloc[:int(len(data)*0.1)]
-    y_col = 'count'
 
     split_idx = int(len(data) * 0.8)
     train_df = data.iloc[:split_idx].copy()
     test_df = data.iloc[split_idx:].copy()
-    y_train = train_df[y_col].values
     y_train_class = train_df['class'].values
-    t_train = train_df["time_idx"]
-    y_test = test_df[y_col].values
     y_test_class = test_df['class'].values
-    t_test = test_df["time_idx"]
     
     x1_col = 'workingday'
     x2_col = 'temp'
     x_scaled = StandardScaler().fit_transform(data[[x1_col, x2_col]])
-    y = np.concatenate([y_train_class, y_test_class])
-    x_train = train_df[[x1_col]]
-    x_test = test_df[[x1_col]]
-    xn_cols = ['workingday', 'holiday', 'windspeed', 'temp', 'humidity', 'summer']
+    y_class = np.concatenate([y_train_class, y_test_class])
     x2_train = train_df[[x1_col, x2_col]]
     x2_test = test_df[[x1_col, x2_col]] 
-    x6_train = train_df[xn_cols]
-    x6_test = test_df[xn_cols]
 
     x2_train_scaled, x2_test_scaled = scaler(x2_test, x2_train)
     models = {
@@ -136,18 +121,18 @@ def main():
     
     cv = StratifiedKFold()
     for name, model in models.items():
-        y_pred_cv = cross_val_predict(model, x_scaled, y, cv=cv, method='predict')
-        y_proba_cv = cross_val_predict(model, x_scaled, y, cv=cv, method='predict_proba')[:, 1]
+        y_pred_cv = cross_val_predict(model, x_scaled, y_class, cv=cv, method='predict')
+        y_proba_cv = cross_val_predict(model, x_scaled, y_class, cv=cv, method='predict_proba')[:, 1]
         metrics[f'{name}_cv'] = {
-                'accuracy': accuracy_score(y, y_pred_cv),
-                'logloss': log_loss(y, y_proba_cv),
-                'f1': f1_score(y, y_pred_cv)
+                'accuracy': accuracy_score(y_class, y_pred_cv),
+                'logloss': log_loss(y_class, y_proba_cv),
+                'f1': f1_score(y_class, y_pred_cv)
             }
-        _confusion_matrix(y_pred_cv, y, f'{name}_cv')
-        roc(y_pred_cv, y_proba_cv, f'{name}_cv')
+        _confusion_matrix(y_pred_cv, y_class, f'{name}_cv')
+        roc(y_class, y_proba_cv, f'{name}_cv')
     
     voting_hard = VotingClassifier(
-        estimators=[('knn', models['kNN']), ('svm', models['SVM']), ('lr', models['SVM'])],
+        estimators=[('knn', models['kNN']), ('svm', models['SVM']), ('lr', models['LR'])],
         voting='hard'
     )
     
@@ -174,8 +159,29 @@ def main():
     }
     _confusion_matrix(y_pred_soft, y_test_class, 'Soft Voting')
     roc(y_test_class, y_pred_soft_proba, 'Soft Voting')
-    
-    
+
+    dt = DecisionTreeClassifier(max_depth=1, random_state=42)
+
+    adaboost = AdaBoostClassifier(
+        estimator=dt,
+        n_estimators=50,
+        learning_rate=1.0,
+        random_state=42
+    )
+
+    adaboost.fit(x2_train_scaled, y_train_class)
+    y_pred_ada = adaboost.predict(x2_test_scaled)
+    y_pred_proba_ada = adaboost.predict_proba(x2_test_scaled)
+
+    metrics['AdaBoost'] = {
+        'accuracy': accuracy_score(y_test_class, y_pred_ada),
+        'logloss': log_loss(y_test_class, y_pred_proba_ada),
+        'f1': f1_score(y_test_class, y_pred_ada)
+    }
+
+    _confusion_matrix(y_pred_ada, y_test_class, 'AdaBoost')
+    roc(y_test_class, y_pred_proba_ada, 'AdaBoost')
+
     df_metrics = pd.DataFrame(metrics).T.round(4)
     print(df_metrics)
 if __name__ == "__main__":
