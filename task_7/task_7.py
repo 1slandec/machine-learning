@@ -7,9 +7,6 @@ from nltk.stem.snowball import SnowballStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-
-# Источник базы знаний: программа дисциплины «Машинное обучение».
-# https://dp.hse.ru/#/summary/?implementationId=16281524547
 questions = [
     "Какова основная цель дисциплины «Машинное обучение»?",
     "Какие типы задач машинного обучения рассматриваются в курсе?",
@@ -57,7 +54,7 @@ answers = [
 ]
 
 test_questions = [
-    # Десять вопросов, ответы на которые есть в базе.
+    # вопросы, ответы на которые есть в базе
     "Для чего изучается дисциплина «Машинное обучение»?",
     "С какими задачами машинного обучения знакомит курс?",
     "Какая предобработка данных предусмотрена программой?",
@@ -68,7 +65,7 @@ test_questions = [
     "Какие алгоритмы кластеризации проходят на занятиях?",
     "Как надо подготовить текст перед выполнением практического задания?",
     "Какую долю данных нужно оставить для обучения, а какую — для тестирования?",
-    # Пять вопросов, ответов на которые в базе нет.
+    # вопросы, ответов на которые в базе нет
     "Какую видеокарту рекомендуют для выполнения практических заданий?",
     "В какой аудитории проходят лекции по машинному обучению?",
     "Какие сроки сдачи домашнего задания установлены по дисциплине?",
@@ -78,7 +75,6 @@ test_questions = [
 
 correct_indices = [0, 1, 5, 8, 11, 12, 14, 15, 17, 19, None, None, None, None, None]
 
-# Служебные и вопросительные слова, не различающие темы запросов.
 stop_words = set("""
     и в во на с со к ко у о об обо от до по за из для при через без
     а но или что чтобы как так это этот эта эти то тот та те
@@ -112,7 +108,6 @@ def jaccard_similarity(query_vector, database_vectors):
 def pearson_similarity(query_vector, database_vectors):
     scores = []
     for vector in database_vectors:
-        # Для константного вектора корреляция не определена.
         if np.std(query_vector) == 0 or np.std(vector) == 0:
             scores.append(0.0)
         else:
@@ -130,7 +125,6 @@ def find_answers(query, vectorizer, database_vectors):
     }
     results = {}
     for name, values in scores.items():
-        # При равенстве оценок выбирается первый вопрос в базе.
         index = int(np.argmax(values))
         results[name] = {
             "index": index,
