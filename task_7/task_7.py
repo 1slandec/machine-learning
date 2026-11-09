@@ -139,7 +139,7 @@ def evaluate(vectorizer, database_vectors):
     for query, correct_index in zip(test_questions, correct_indices):
         correct_answer = (
             answers[correct_index] if correct_index is not None else "Ответ отсутствует в базе"
-        )
+        )   
         results = find_answers(query, vectorizer, database_vectors)
         row = {"Вопрос": query, "Правильный ответ": correct_answer}
         for name, result in results.items():
