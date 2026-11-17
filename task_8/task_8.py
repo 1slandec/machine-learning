@@ -64,10 +64,8 @@ y_hog = []
 
 for image, label in zip(X_resized, y):
 
-    # Переводим изображение в оттенки серого
     gray = np.dot(image[..., :3], [0.2125, 0.7154, 0.0721])
 
-    # Извлекаем HOG-признаки
     features = hog(
         gray,
         orientations=9,
@@ -133,13 +131,11 @@ comparison = pd.DataFrame(results).sort_values(
 print('\nСравнение моделей на тестовой выборке:')
 print(comparison.round(3).to_string(index=False))
 
-# Для визуального разбора берём модель с наибольшим F1 на этом тесте.
 best_name = comparison.iloc[0]['Модель']
 y_pred = predictions[best_name]
 
 data_dir.mkdir(exist_ok=True)
 
-# Одна строка на исходное изображение с именем, меткой и HOG-признаками.
 hog_table = pd.DataFrame(
     X_hog, columns=[f'hog_{i}' for i in range(X_hog.shape[1])]
 )
