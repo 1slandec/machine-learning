@@ -1,0 +1,7 @@
+﻿model,split,filepath,GT,TP,FP,FN
+after,test,C:\Users\Mikhail\Documents\machine-learning\machine-learning\task_9\data\yolo_dataset\test\images\0d46532b8ab95063_jpg.rf.613f36ad79106f099225ca1124dd927c.jpg,1,1,8,0
+after,test,C:\Users\Mikhail\Documents\machine-learning\machine-learning\task_9\data\yolo_dataset\test\images\249e598921ba7ec3_jpg.rf.ffc1dd6cb608a2a8c658baad85b2a76b.jpg,1,1,8,0
+after,test,C:\Users\Mikhail\Documents\machine-learning\machine-learning\task_9\data\yolo_dataset\test\images\bde4437fad96b602_jpg.rf.2e5ce485e85afa8945e408e661ad2aab.jpg,1,1,8,0
+after,test,C:\Users\Mikhail\Documents\machine-learning\machine-learning\task_9\data\yolo_dataset\test\images\no_cat_5855a85994c60eac.jpg,0,0,7,0
+after,test,C:\Users\Mikhail\Documents\machine-learning\machine-learning\task_9\data\yolo_dataset\test\images\no_cat_678b317900696657.jpg,0,0,6,0
+after,test,C:\Users\Mikhail\Documents\machine-learning\machine-learning\task_9\data\yolo_dataset\test\images\no_cat_a46114e788ec79f9.jpg,0,0,6,0

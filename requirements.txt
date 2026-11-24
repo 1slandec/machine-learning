@@ -31,4 +31,3 @@ urllib3==2.7.0
 tensorflow==2.21.0
 ultralytics==8.4.216
 PyYAML==6.0.3
-https://github.com/explosion/spacy-models/releases/download/ru_core_news_sm-3.8.0/ru_core_news_sm-3.8.0-py3-none-any.whl

@@ -1,0 +1,12 @@
+train: train/images
+val: valid/images
+test: test/images
+nc: 1
+names:
+- cat
+roboflow:
+  workspace: 1slandecs-workspace
+  project: my-first-project-etnpb
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/1slandecs-workspace/my-first-project-etnpb/dataset/1
